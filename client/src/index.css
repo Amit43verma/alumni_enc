@@ -1,0 +1,452 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Dark mode scrollbar */
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: #2a2a2a;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #4a4a4a;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #5a5a5a;
+}
+
+/* Dark mode improvements */
+[data-theme="dark"] .card {
+  border: 1px solid #374151;
+}
+
+[data-theme="dark"] .border-base-300 {
+  border-color: #374151 !important;
+}
+
+[data-theme="dark"] .bg-base-50 {
+  background-color: #1f2937;
+}
+
+[data-theme="dark"] .dropdown-content {
+  border: 1px solid #374151;
+}
+
+/* Animation classes */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Chat message styles */
+.message-bubble {
+  max-width: 70%;
+  word-wrap: break-word;
+  animation: messageSlideIn 0.3s ease-out;
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-bubble.own {
+  margin-left: auto;
+}
+
+.message-bubble.other {
+  margin-right: auto;
+}
+
+/* Typing indicator animation */
+@keyframes typingBounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-10px);
+  }
+}
+
+.typing-dot {
+  animation: typingBounce 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+/* Read receipt animations */
+.read-receipt {
+  transition: all 0.3s ease;
+}
+
+.read-receipt.sent {
+  opacity: 0.4;
+}
+
+.read-receipt.delivered {
+  opacity: 0.6;
+}
+
+.read-receipt.read {
+  opacity: 1;
+  color: #3b82f6;
+}
+
+/* Online status indicator */
+.online-indicator {
+  transition: all 0.3s ease;
+}
+
+.online-indicator.online {
+  background-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.online-indicator.offline {
+  background-color: #9ca3af;
+}
+
+/* Media preview styles */
+.media-preview {
+  position: relative;
+  display: inline-block;
+}
+
+.media-preview .remove-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ef4444;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* Loading spinner */
+.spinner {
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #3498db;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .mobile-hidden {
+    display: none;
+  }
+  
+  .message-bubble {
+    max-width: 85%;
+  }
+}
+
+@media (min-width: 769px) {
+  .desktop-hidden {
+    display: none;
+  }
+}
+
+/* Line clamp utility */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Better focus states */
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: 2px solid hsl(var(--p));
+  outline-offset: 2px;
+}
+
+/* Improved button states */
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Better card shadows in dark mode */
+[data-theme="dark"] .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Notification styles */
+.notification-enter {
+  animation: notificationSlideIn 0.3s ease-out;
+}
+
+@keyframes notificationSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Unread count badge animation */
+.unread-badge {
+  animation: badgePulse 2s infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Tiptap/Google Docs-inspired toolbar styles */
+.ql-toolbar.ql-snow {
+  background: var(--fallback-b2, oklch(var(--b2)/.9)) !important;
+  border-radius: 0.75rem !important;
+  border: 1px solid var(--fallback-b3, oklch(var(--b3)/.8)) !important;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.07), 0 1px 2px -1px rgb(0 0 0 / 0.07);
+  padding: 6px !important;
+  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+}
+
+.ql-formats {
+  margin-right: 6px !important;
+  padding-right: 6px !important;
+  border-right: 1px solid var(--fallback-b3, oklch(var(--b3)/.5));
+  display: inline-flex !important;
+  align-items: center;
+  gap: 4px;
+}
+.ql-formats:last-child {
+  border-right: none;
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+}
+
+.ql-snow .ql-picker,
+.ql-snow .ql-formats button {
+  border-radius: 6px !important;
+  border: none !important;
+  height: 32px !important;
+  width: auto !important;
+  padding: 4px !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  min-width: 32px;
+}
+.ql-snow .ql-picker.ql-header {
+  width: 80px !important;
+}
+.ql-snow .ql-picker-label {
+  padding-left: 8px !important;
+}
+
+.ql-snow .ql-picker:hover,
+.ql-snow .ql-formats button:hover {
+  background-color: var(--fallback-b3, oklch(var(--b3)/1)) !important;
+  color: var(--fallback-bc, oklch(var(--bc)/1)) !important;
+}
+
+.ql-snow .ql-picker.ql-active,
+.ql-snow .ql-formats button.ql-active {
+  background-color: oklch(var(--p)) !important;
+  color: oklch(var(--pc)) !important;
+}
+
+/* Ensure all icons are visible and theme-aware */
+.ql-snow .ql-stroke {
+  stroke: currentColor !important;
+}
+.ql-snow .ql-fill {
+  fill: currentColor !important;
+}
+
+.ql-snow .ql-picker-label,
+.ql-snow .ql-formats button {
+  color: var(--fallback-bc, oklch(var(--bc)/.5)) !important;
+  transition: color 0.15s, background 0.15s;
+}
+.ql-snow .ql-picker-label.ql-active,
+.ql-snow .ql-formats button.ql-active {
+  background-color: #fff3e0 !important; /* light orange background */
+  color: #ff9800 !important; /* vibrant orange for icon */
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label::before {
+  content: 'Style' !important;
+}
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before { content: 'Heading 1';}
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before { content: 'Heading 2';}
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before { content: 'Heading 3';}
+.ql-snow .ql-picker.ql-header .ql-picker-item:not([data-value])::before { content: 'Normal'; }
+
+.ql-container.ql-snow {
+  border: 1px solid var(--fallback-b3, oklch(var(--b3)/1)) !important;
+  border-radius: 0 0 0.5rem 0.5rem !important;
+  min-height: 120px;
+  background-color: var(--fallback-b1, oklch(var(--b1)/1));
+}
+
+.ql-editor.ql-blank::before {
+  color: var(--fallback-bc, oklch(var(--bc) / 0.4)) !important;
+  font-style: normal !important;
+}
+
+.ql-snow .ql-picker-options {
+  background-color: var(--fallback-b2, oklch(var(--b2)/1));
+  border-radius: 6px;
+  border: 1px solid var(--fallback-b3, oklch(var(--b3)/.8));
+}
+.ql-snow .ql-picker-item:hover {
+  color: oklch(var(--p)) !important;
+}
+
+/* Custom styles for rendered Quill content in posts */
+.prose {
+  line-height: 1.7;
+}
+
+.prose a {
+  color: oklch(var(--p)); /* Use primary color for links */
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.prose a:hover {
+  opacity: 0.8;
+}
+
+.prose strong,
+.prose b {
+  font-weight: 700 !important;
+  color: oklch(var(--bc)) !important; /* Use base text color */
+}
+
+.prose h1,
+.prose h2 {
+  font-weight: 600;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose h1 {
+  font-size: 1.25rem;
+}
+
+.prose h2 {
+  font-size: 1.1rem;
+}
+
+/* Whitelist fonts for the editor */
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="sans-serif"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="sans-serif"]::before {
+  content: "Sans Serif";
+  font-family: "Sans Serif", sans-serif;
+}
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="serif"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="serif"]::before {
+  content: "Serif";
+  font-family: "Serif", serif;
+}
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="monospace"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="monospace"]::before {
+  content: "Monospace";
+  font-family: "Monospace", monospace;
+}
+.ql-font-sans-serif {
+  font-family: "Sans Serif", sans-serif;
+}
+.ql-font-serif {
+  font-family: "Serif", serif;
+}
+.ql-font-monospace {
+  font-family: "Monospace", monospace;
+}

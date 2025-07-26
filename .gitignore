@@ -1,0 +1,21 @@
+server/node_modules/
+client/node_modules/
+
+# Ignore build or dist folders
+server/build/
+client/build/
+server/dist/
+client/dist/
+
+# Ignore environment files
+server/.env
+client/.env
+
+# can you add features in this project like whatsapp, in whatsapp admin have powers to add users , make other admin, remove user,and many other powers for admin of group. can you implement it for me keeping the project consistent and in good running condition.
+# also implement the things like whatsapp which is real time . 
+
+
+
+# # 
+# i want some other features as well like chat notificatoin on chat icon on navbar and post notification on bell icon on navbar.
+# also chats should be sorted according to the latest chat.
