@@ -103,22 +103,46 @@ const useChatStore = create((set, get) => ({
           encryptedContent: undefined, // Remove encrypted part
         };
 
-          set(state => ({
+        //   set(state => ({
+        //   messages: state.messages.map(m =>
+        //     m.tempId === message.tempId ? finalMessage : m
+        //   ),
+        // }));
+
+        // // If it's a message from someone else (no tempId match), just add it
+        // if (!get().messages.some(m => m._id === finalMessage._id)) {
+        //     set(state => ({ messages: [...state.messages, finalMessage] }));
+        // }
+        
+        // // If the user is in the current room, add the decrypted message to the state
+        // if (currentRoom?._id === decryptedMessage.roomId) {
+        //   set((state) => ({ messages: [...state.messages, decryptedMessage] }));
+        //   get().markMessagesAsRead(decryptedMessage.roomId, [decryptedMessage._id]);
+        // }
+
+
+        set(state => {
+      // Check if this message is an update to an optimistic one
+      const optimisticMessageExists = state.messages.some(m => m.tempId && m.tempId === message.tempId);
+      
+      if (optimisticMessageExists) {
+        // If it is, replace the temporary message with the final one
+        return {
           messages: state.messages.map(m =>
             m.tempId === message.tempId ? finalMessage : m
           ),
-        }));
+        };
+      } else {
+        // If it's a new message from someone else, just add it
+        return { messages: [...state.messages, finalMessage] };
+      }
+    });
 
-        // If it's a message from someone else (no tempId match), just add it
-        if (!get().messages.some(m => m._id === finalMessage._id)) {
-            set(state => ({ messages: [...state.messages, finalMessage] }));
-        }
-        
-        // If the user is in the current room, add the decrypted message to the state
-        if (currentRoom?._id === decryptedMessage.roomId) {
-          set((state) => ({ messages: [...state.messages, decryptedMessage] }));
-          get().markMessagesAsRead(decryptedMessage.roomId, [decryptedMessage._id]);
-        }
+    if (currentRoom?._id === finalMessage.roomId) {
+      get().markMessagesAsRead(finalMessage.roomId, [finalMessage._id]);
+    }
+
+
 
         // Handle notifications
         const room = get().rooms.find((r) => r._id === decryptedMessage.roomId);
@@ -278,19 +302,76 @@ const useChatStore = create((set, get) => ({
     }
   },
 
+  // loadMessages: async (roomId, page = 1) => {
+  //   set({ loading: true })
+  //   try {
+  //     const response = await axios.get(`${API_URL}/chat/rooms/${roomId}/messages?page=${page}&limit=50`)
+  //     const { messages } = response.data
+
+  //     set((state) => ({
+  //       messages: page === 1 ? messages : [...messages, ...state.messages],
+  //       loading: false,
+  //     }))
+
+  //     // Mark messages as read when loading
+  //     if (page === 1 && messages.length > 0) {
+  //       // Get current user from auth store
+  //       const currentUser = useAuthStore.getState().user
+        
+  //       const unreadMessageIds = messages
+  //         .filter(msg => msg.sender._id !== currentUser?.id)
+  //         .map(msg => msg._id)
+
+  //       if (unreadMessageIds.length > 0) {
+  //         get().markMessagesAsRead(roomId, unreadMessageIds)
+  //       }
+  //     }
+  //   } catch (error) {
+  //     set({ loading: false })
+  //     toast.error("Failed to load messages")
+  //   }
+  // },
+
+
+  // In client/src/store/chatStore.js
+
   loadMessages: async (roomId, page = 1) => {
-    set({ loading: true })
+    set({ loading: true });
     try {
-      const response = await axios.get(`${API_URL}/chat/rooms/${roomId}/messages?page=${page}&limit=50`)
-      const { messages } = response.data
+      const response = await axios.get(`${API_URL}/chat/rooms/${roomId}/messages?page=${page}&limit=50`);
+      const encryptedMessages = response.data.messages;
+
+      // THE FIX: Decrypt messages after fetching them
+      const { sharedKeys } = get();
+      const sharedKey = sharedKeys[roomId];
+      let decryptedMessages = [];
+
+      if (sharedKey) {
+        for (const msg of encryptedMessages) {
+          try {
+            const decryptedPayload = await decryptMessage(msg.text, sharedKey);
+            decryptedMessages.push({
+              ...msg,
+              text: decryptedPayload.text,
+              mediaUrl: decryptedPayload.mediaUrl,
+            });
+          } catch (e) {
+            decryptedMessages.push({ ...msg, text: "⚠️ Could not decrypt message." });
+          }
+        }
+      } else {
+        // If no key, show all as undecryptable
+        decryptedMessages = encryptedMessages.map(msg => ({ ...msg, text: "⚠️ Decryption key not found." }));
+      }
 
       set((state) => ({
-        messages: page === 1 ? messages : [...messages, ...state.messages],
+        messages: page === 1 ? decryptedMessages : [...decryptedMessages, ...state.messages],
         loading: false,
-      }))
+      }));
+      
+      // ... (rest of the function is correct)
 
-      // Mark messages as read when loading
-      if (page === 1 && messages.length > 0) {
+       if (page === 1 && messages.length > 0) {
         // Get current user from auth store
         const currentUser = useAuthStore.getState().user
         
@@ -302,9 +383,10 @@ const useChatStore = create((set, get) => ({
           get().markMessagesAsRead(roomId, unreadMessageIds)
         }
       }
+
     } catch (error) {
-      set({ loading: false })
-      toast.error("Failed to load messages")
+      set({ loading: false });
+      toast.error("Failed to load messages");
     }
   },
 

@@ -187,63 +187,120 @@ io.on("connection", async (socket) => {
   // })
 
 
- socket.on("sendMessage", async (data) => {
-    try {
-      const { roomId, encryptedContent } = data; // Receive encrypted content
-      const Message = require("./models/Message");
+//  socket.on("sendMessage", async (data) => {
+//     try {
+//       const { roomId, encryptedContent } = data; // Receive encrypted content
+//       const Message = require("./models/Message");
 
-      // --- THE FIX IS HERE ---
-      // Save the encryptedContent into the 'text' field of the database.
-      const message = await Message.create({
-        roomId,
-        sender: socket.userId,
-        text: encryptedContent, // This was missing before
-        messageType: "text",
-        status: "sent",
+//       // --- THE FIX IS HERE ---
+//       // Save the encryptedContent into the 'text' field of the database.
+//       const message = await Message.create({
+//         roomId,
+//         sender: socket.userId,
+//         text: encryptedContent, // This was missing before
+//         messageType: "text",
+//         status: "sent",
+//       });
+
+//       // The rest of the logic remains the same.
+//       await message.populate("sender", "name avatarUrl");
+
+//       const room = await ChatRoom.findById(roomId);
+//       if (room) {
+//         room.lastMessage = message._id;
+//         room.updatedAt = new Date();
+        
+//         room.members.forEach(memberId => {
+//           if (memberId.toString() !== socket.userId) {
+//             const currentCount = room.unreadCounts.get(memberId.toString()) || 0;
+//             room.unreadCounts.set(memberId.toString(), currentCount + 1);
+//           }
+//         });
+        
+//         await room.save();
+
+//         const updatedRoom = await ChatRoom.findById(roomId)
+//           .populate("members", "name avatarUrl isOnline lastSeen")
+//           .populate({
+//             path: "lastMessage",
+//             populate: { path: "sender", select: "name" },
+//           });
+        
+//         const messagePayload = {
+//             ...message.toObject(),
+//             encryptedContent: message.text,
+//             text: undefined 
+//         };
+
+//         room.members.forEach(memberId => {
+//           io.to(memberId.toString()).emit("newMessage", messagePayload);
+//           io.to(memberId.toString()).emit("roomUpdated", updatedRoom);
+//         });
+//       }
+//     } catch (error) {
+//       console.error("Send message error:", error);
+//       socket.emit("error", { message: "Failed to send message" });
+//     }
+//   });
+
+socket.on("sendMessage", async (data) => {
+  try {
+    // Add tempId to the destructuring
+    const { roomId, encryptedContent, tempId } = data; 
+    const Message = require("./models/Message");
+
+    const message = await Message.create({
+      roomId,
+      sender: socket.userId,
+      text: encryptedContent,
+      messageType: "text",
+      status: "sent",
+    });
+
+    await message.populate("sender", "name avatarUrl");
+
+    const room = await ChatRoom.findById(roomId);
+    if (room) {
+      room.lastMessage = message._id;
+      room.updatedAt = new Date();
+      
+      room.members.forEach(memberId => {
+        if (memberId.toString() !== socket.userId) {
+          const currentCount = room.unreadCounts.get(memberId.toString()) || 0;
+          room.unreadCounts.set(memberId.toString(), currentCount + 1);
+        }
       });
+      
+      await room.save();
 
-      // The rest of the logic remains the same.
-      await message.populate("sender", "name avatarUrl");
-
-      const room = await ChatRoom.findById(roomId);
-      if (room) {
-        room.lastMessage = message._id;
-        room.updatedAt = new Date();
-        
-        room.members.forEach(memberId => {
-          if (memberId.toString() !== socket.userId) {
-            const currentCount = room.unreadCounts.get(memberId.toString()) || 0;
-            room.unreadCounts.set(memberId.toString(), currentCount + 1);
-          }
+      const updatedRoom = await ChatRoom.findById(roomId)
+        .populate("members", "name avatarUrl isOnline lastSeen")
+        .populate({
+          path: "lastMessage",
+          populate: { path: "sender", select: "name" },
         });
-        
-        await room.save();
+      
+      const messagePayload = {
+          ...message.toObject(),
+          encryptedContent: message.text,
+          text: undefined,
+          tempId: tempId // Include the tempId in the broadcast
+      };
 
-        const updatedRoom = await ChatRoom.findById(roomId)
-          .populate("members", "name avatarUrl isOnline lastSeen")
-          .populate({
-            path: "lastMessage",
-            populate: { path: "sender", select: "name" },
-          });
-        
-        const messagePayload = {
-            ...message.toObject(),
-            encryptedContent: message.text,
-            text: undefined 
-        };
-
-        room.members.forEach(memberId => {
-          io.to(memberId.toString()).emit("newMessage", messagePayload);
+      // THE FIX: Emit to the room ID so active listeners get the message immediately.
+      // Also continue to emit to each member for notifications.
+      io.to(roomId).emit("newMessage", messagePayload);
+      room.members.forEach(memberId => {
+        if (memberId.toString() !== socket.userId) { // Don't send a separate roomUpdated to the sender
           io.to(memberId.toString()).emit("roomUpdated", updatedRoom);
-        });
-      }
-    } catch (error) {
-      console.error("Send message error:", error);
-      socket.emit("error", { message: "Failed to send message" });
+        }
+      });
     }
-  });
-
-
+  } catch (error) {
+    console.error("Send message error:", error);
+    socket.emit("error", { message: "Failed to send message" });
+  }
+});
 
   socket.on("markAsRead", async (data) => {
     try {
@@ -356,27 +413,51 @@ io.on("connection", async (socket) => {
     }
   })
 
-  socket.on("typingStop", async (roomId) => {
-    try {
-      const room = await ChatRoom.findById(roomId)
-      if (room) {
-        // Remove user from typing list
-        room.typingUsers = room.typingUsers.filter(
-          t => t.user.toString() !== socket.userId
-        )
-        await room.save()
+  // socket.on("typingStop", async (roomId) => {
+  //   try {
+  //     const room = await ChatRoom.findById(roomId)
+  //     if (room) {
+  //       // Remove user from typing list
+  //       room.typingUsers = room.typingUsers.filter(
+  //         t => t.user.toString() !== socket.userId
+  //       )
+  //       await room.save()
 
-        // Emit to other users in the room
-        socket.to(roomId).emit("userTyping", {
-          roomId,
-          userId: socket.userId,
-          isTyping: false,
-        })
-      }
-    } catch (error) {
-      console.error("Typing stop error:", error)
-    }
-  })
+  //       // Emit to other users in the room
+  //       socket.to(roomId).emit("userTyping", {
+  //         roomId,
+  //         userId: socket.userId,
+  //         isTyping: false,
+  //       })
+  //     }
+  //   } catch (error) {
+  //     console.error("Typing stop error:", error)
+  //   }
+  // })
+
+
+
+  // In server/server.js
+
+socket.on("typingStop", async (roomId) => {
+  try {
+    // THE FIX: Use an atomic update to prevent VersionError
+    await ChatRoom.findByIdAndUpdate(roomId, {
+      $pull: { typingUsers: { user: socket.userId } }
+    });
+
+    // Emit to other users in the room
+    socket.to(roomId).emit("userTyping", {
+      roomId,
+      userId: socket.userId,
+      isTyping: false,
+    });
+  } catch (error) {
+    // The VersionError will no longer occur, but keep the catch block
+    console.error("Typing stop error:", error);
+  }
+});
+
 
   socket.on("disconnect", async () => {
     console.log("User disconnected:", socket.userId)
